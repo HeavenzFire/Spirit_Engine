@@ -1,0 +1,57 @@
+import math
+import random
+import numpy as np
+import matplotlib.pyplot as plt
+
+def calculate_resonance_frequency(input_value):
+    phi = (1 + 5**0.5) / 2
+    frequency = input_value * phi**3
+    return frequency
+
+def generate_toroid(input_value, theta):
+    phi = (1 + 5**0.5) / 2
+    toroid_x = input_value * math.cos(theta) * phi**2
+    toroid_y = input_value * math.sin(theta) * phi**2
+    toroid_z = input_value * phi**3
+    return toroid_x, toroid_y, toroid_z
+
+def create_cloud(input_value, theta):
+    phi = (1 + 5**0.5) / 2
+    random_offset = random.uniform(-1, 1)
+    cloud_x = input_value * math.cos(theta) * phi**2 + random_offset
+    cloud_y = input_value * math.sin(theta) * phi**2 + random_offset
+    cloud_z = input_value * phi**3 + random_offset
+    return cloud_x, cloud_y, cloud_z
+
+# Test the functions
+input_value = 10
+theta = math.pi
+
+# Calculate resonance frequency
+resonance_frequency = calculate_resonance_frequency(input_value)
+print(f"Resonance Frequency: {resonance_frequency}")
+
+# Generate toroid
+toroid_x, toroid_y, toroid_z = generate_toroid(input_value, theta)
+print(f"Toroid Coordinates: x={toroid_x}, y={toroid_y}, z={toroid_z}")
+
+# Create cloud
+cloud_x, cloud_y, cloud_z = create_cloud(input_value, theta)
+print(f"Cloud Coordinates: x={cloud_x}, y={cloud_y}, z={cloud_z}")
+
+# Visualize the toroid and cloud
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+
+# Plot toroid
+ax.scatter(toroid_x, toroid_y, toroid_z, color='b', label='Toroid')
+
+# Plot cloud
+ax.scatter(cloud_x, cloud_y, cloud_z, color='r', label='Cloud')
+
+ax.set_xlabel('X')
+ax.set_ylabel('Y')
+ax.set_zlabel('Z')
+ax.legend()
+plt.title("Toroid and Cloud Visualization")
+plt.show()
