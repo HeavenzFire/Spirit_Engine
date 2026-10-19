@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "source_roots": [
+    "C:/Users/rucke/HeavenzFire",
+    "C:/Users/rucke/heavenzfire-capsule-v02"
+  ],
+  "destination_root": "D:/HeavenzFire-Recovery/snapshots",
+  "exclude_directory_names": [
+    ".git",
+    "node_modules",
+    "__pycache__",
+    ".venv",
+    "venv",
+    ".ollama",
+    "models",
+    "cache",
+    "caches",
+    "Temp",
+    "tmp"
+  ],
+  "exclude_file_names": [
+    ".env",
+    ".env.local",
+    "id_rsa",
+    "id_ed25519",
+    "credentials.json",
+    "token.json"
+  ],
+  "exclude_extensions": [
+    ".pem",
+    ".key",
+    ".pfx",
+    ".p12",
+    ".sqlite-wal",
+    ".sqlite-shm"
+  ],
+  "max_file_size_mb": 512,
+  "copy_symlinks": false
+}
