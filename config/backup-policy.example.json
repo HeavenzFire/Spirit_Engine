@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "source_roots": [
-    "C:/Users/rucke/HeavenzFire",
-    "C:/Users/rucke/heavenzfire-capsule-v02"
+    "C:/Path/To/HeavenzFireProject",
+    "D:/Path/To/AdditionalProject"
   ],
-  "destination_root": "D:/HeavenzFire-Recovery/snapshots",
+  "destination_root": "E:/HeavenzFire-Recovery/snapshots",
   "exclude_directory_names": [
     ".git",
     "node_modules",
