@@ -36,11 +36,15 @@ class UnifiedFieldLedgerTests(unittest.TestCase):
 
     def test_payload_tampering_is_detected(self):
         self.ledger.append("task.created", {"task": "safe"})
-        with sqlite3.connect(self.db) as connection:
+        connection = sqlite3.connect(self.db)
+        try:
             connection.execute(
                 "UPDATE events SET payload_json = ? WHERE seq = 1",
                 (json.dumps({"task": "altered"}),),
             )
+            connection.commit()
+        finally:
+            connection.close()
         result = self.ledger.verify()
         self.assertFalse(result["ok"])
         self.assertIn("event_hash_mismatch", [f["reason"] for f in result["failures"]])
