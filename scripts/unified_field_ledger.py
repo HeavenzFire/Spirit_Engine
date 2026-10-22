@@ -13,6 +13,7 @@ import json
 import sqlite3
 import sys
 import uuid
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -60,8 +61,22 @@ class Ledger:
         connection.execute("PRAGMA busy_timeout=10000")
         return connection
 
+    @contextmanager
+    def _connection(self):
+        """Commit/rollback transactions and always close the SQLite handle.
+
+        sqlite3.Connection's context manager does not close the connection;
+        explicit close is required to release file locks reliably on Windows.
+        """
+        connection = self._connect()
+        try:
+            with connection:
+                yield connection
+        finally:
+            connection.close()
+
     def _initialize(self) -> None:
-        with self._connect() as connection:
+        with self._connection() as connection:
             connection.executescript(SCHEMA)
 
     def append(self, kind: str, payload: Any, event_id: str | None = None) -> dict[str, Any]:
@@ -72,7 +87,7 @@ class Ledger:
         payload_json = canonical_json(payload)
         identifier = event_id or str(uuid.uuid4())
         created_at = datetime.now(timezone.utc).isoformat()
-        with self._connect() as connection:
+        with self._connection() as connection:
             connection.execute("BEGIN IMMEDIATE")
             previous = connection.execute(
                 "SELECT event_hash FROM events ORDER BY seq DESC LIMIT 1"
@@ -103,7 +118,7 @@ class Ledger:
         }
 
     def list_events(self) -> list[dict[str, Any]]:
-        with self._connect() as connection:
+        with self._connection() as connection:
             rows = connection.execute("SELECT * FROM events ORDER BY seq").fetchall()
         return [self._row_to_event(row) for row in rows]
 
