@@ -63,6 +63,13 @@ class SignedManifestTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "signature verification failed"):
             verify_signed_manifest(self.snapshot, self.public_path)
 
+
+    def test_payload_tampering_fails_after_valid_signature(self):
+        sign_manifest(self.snapshot, self.private_path)
+        (self.snapshot / "payload.txt").write_bytes(b"tampered payload")
+        with self.assertRaisesRegex(ValueError, "payload size mismatch|payload SHA-256 mismatch"):
+            verify_signed_manifest(self.snapshot, self.public_path)
+
     def test_wrong_trusted_key_fails(self):
         sign_manifest(self.snapshot, self.private_path)
         other = Ed25519PrivateKey.generate().public_key()
