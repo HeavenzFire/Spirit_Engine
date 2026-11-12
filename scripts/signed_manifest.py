@@ -57,7 +57,8 @@ def validate_manifest(manifest: Any) -> dict[str, Any]:
         if not isinstance(item, dict):
             raise ValueError(f"Manifest file entry {index} must be an object.")
         path = item.get("path")
-        if not isinstance(path, str) or not path or "\\" in path:
+        if (not isinstance(path, str) or not path or "\\" in path or "\x00" in path
+                or re.match(r"^[A-Za-z]:", path)):
             raise ValueError(f"Manifest file entry {index} has an invalid path.")
         rel = PurePosixPath(path)
         if rel.is_absolute() or any(part in ("", ".", "..") for part in path.split("/")):
