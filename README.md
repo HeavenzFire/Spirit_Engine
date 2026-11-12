@@ -66,6 +66,31 @@ python .\scripts\restore_snapshot.py --snapshot-id '2026-10-18T201500Z' --output
 
 The remote manifest omits absolute local source paths. The upload writes the manifest last as a completion marker. A failed upload may leave orphaned versioned objects; it does not delete or overwrite the source snapshot.
 
+
+## Signed manifest verification (Ed25519)
+
+Install the signing dependency:
+
+```powershell
+python -m pip install -r .\requirements-security.txt
+```
+
+Create an operator-controlled Ed25519 key pair with OpenSSL. Keep the private key offline or in an OS-protected secret store; distribute the public key through an independently authenticated channel. Never commit the private key.
+
+```powershell
+openssl genpkey -algorithm ED25519 -out .\hf-recovery-signing-private.pem
+openssl pkey -in .\hf-recovery-signing-private.pem -pubout -out .\hf-recovery-signing-public.pem
+```
+
+Sign an existing local snapshot manifest and verify it using the separately trusted public key:
+
+```powershell
+python .\scripts\signed_manifest.py sign 'E:\HeavenzFire-Recovery\snapshots\first' --private-key .\hf-recovery-signing-private.pem
+python .\scripts\signed_manifest.py verify 'E:\HeavenzFire-Recovery\snapshots\first' --public-key .\hf-recovery-signing-public.pem
+```
+
+The detached `manifest.sig.json` authenticates the canonicalized manifest bytes. SHA-256 checks detect payload corruption; Ed25519 establishes that a holder of the corresponding private key signed the manifest. These are different guarantees. A signature is only as trustworthy as the public-key distribution and private-key custody process. The current signer does not automatically sign uploads or enforce signature verification during cloud restore; those integrations remain follow-up work.
+
 ## Guardian status API
 
 Set `HF_SNAPSHOT_ROOT` to a directory containing per-snapshot folders with `manifest.json`, then run:
@@ -90,7 +115,7 @@ The service rejects non-loopback binds. It is intentionally read-only and does n
 - [ ] Test a snapshot and restore drill on a separate volume.
 - [ ] Test upload/download against a versioned S3-compatible bucket.
 - [ ] Add a transactional metadata schema and structured audit log.
-- [ ] Add signed manifests and key-rotation instructions.
+- [x] Add detached Ed25519 manifest signing and trusted-key verification (feature branch; CI pending).\n- [ ] Integrate signature enforcement into cloud upload and staged restore.\n- [ ] Document key rotation and revocation procedures.
 - [ ] Add scheduled backups and restore drills with alerts, not automatic destructive actions.
 
 ## Security
