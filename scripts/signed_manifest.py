@@ -101,10 +101,31 @@ def key_id(public_key: Ed25519PublicKey) -> str:
     return hashlib.sha256(raw).hexdigest()
 
 
+
+def verify_payload_files(snapshot_dir: Path, manifest: dict[str, Any]) -> None:
+    """Verify each payload byte stream and reject symlink/path escapes."""
+    root = snapshot_dir.expanduser().resolve()
+    for item in manifest["files"]:
+        candidate = root
+        for part in PurePosixPath(item["path"]).parts:
+            candidate = candidate / part
+            if candidate.is_symlink():
+                raise ValueError(f"Symlink in snapshot payload path: {item['path']}")
+        resolved = candidate.resolve(strict=True)
+        if root not in resolved.parents or not resolved.is_file():
+            raise ValueError(f"Snapshot payload is missing or escapes root: {item['path']}")
+        if resolved.stat().st_size != item["size_bytes"]:
+            raise ValueError(f"Snapshot payload size mismatch: {item['path']}")
+        digest = hashlib.sha256(resolved.read_bytes()).hexdigest()
+        if digest != item["sha256"]:
+            raise ValueError(f"Snapshot payload SHA-256 mismatch: {item['path']}")
+
+
 def sign_manifest(snapshot_dir: Path, private_key_path: Path) -> Path:
     snapshot_dir = snapshot_dir.expanduser().resolve()
     manifest_path = snapshot_dir / "manifest.json"
     manifest = validate_manifest(json.loads(manifest_path.read_text(encoding="utf-8")))
+    verify_payload_files(snapshot_dir, manifest)
     private_key = load_private_key(private_key_path)
     public_key = private_key.public_key()
     signature = private_key.sign(canonical_manifest_bytes(manifest))
@@ -142,6 +163,7 @@ def verify_signed_manifest(snapshot_dir: Path, public_key_path: Path) -> dict[st
     except Exception as exc:
         # InvalidSignature is intentionally surfaced as a stable validation error.
         raise ValueError("Manifest signature verification failed.") from exc
+    verify_payload_files(snapshot_dir, manifest)
     return manifest
 
 
