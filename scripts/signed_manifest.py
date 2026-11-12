@@ -116,8 +116,11 @@ def verify_payload_files(snapshot_dir: Path, manifest: dict[str, Any]) -> None:
             raise ValueError(f"Snapshot payload is missing or escapes root: {item['path']}")
         if resolved.stat().st_size != item["size_bytes"]:
             raise ValueError(f"Snapshot payload size mismatch: {item['path']}")
-        digest = hashlib.sha256(resolved.read_bytes()).hexdigest()
-        if digest != item["sha256"]:
+        digest = hashlib.sha256()
+        with resolved.open("rb") as stream:
+            for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+                digest.update(chunk)
+        if digest.hexdigest() != item["sha256"]:
             raise ValueError(f"Snapshot payload SHA-256 mismatch: {item['path']}")
 
 
