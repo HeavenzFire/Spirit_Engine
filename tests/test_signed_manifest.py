@@ -87,6 +87,19 @@ class SignedManifestTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "total_bytes"):
             validate_manifest(invalid)
 
+
+    def test_windows_drive_path_rejected(self):
+        invalid = dict(self.manifest)
+        invalid["files"] = [dict(self.manifest["files"][0], path="C:/outside.txt")]
+        with self.assertRaisesRegex(ValueError, "invalid path"):
+            validate_manifest(invalid)
+
+    def test_backslash_path_rejected(self):
+        invalid = dict(self.manifest)
+        invalid["files"] = [dict(self.manifest["files"][0], path="root\\\\outside.txt")]
+        with self.assertRaisesRegex(ValueError, "invalid path"):
+            validate_manifest(invalid)
+
     def test_traversal_rejected(self):
         invalid = dict(self.manifest)
         invalid["files"] = [dict(self.manifest["files"][0], path="../outside")]
