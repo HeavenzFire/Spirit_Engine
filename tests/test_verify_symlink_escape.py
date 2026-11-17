@@ -78,5 +78,37 @@ class SnapshotSymlinkVerificationTests(unittest.TestCase):
             )
 
 
+    def test_verifier_rejects_manifest_symlink_resolving_outside_snapshot(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+            source = base / "source"
+            output = base / "snapshot"
+            source.mkdir()
+            (source / "payload.txt").write_text("approved payload\\n", encoding="utf-8")
+            policy = {
+                "schema_version": 1,
+                "source_roots": [str(source)],
+                "destination_root": str(output),
+                "exclude_directory_names": [],
+                "exclude_file_names": [],
+                "exclude_extensions": [],
+                "max_file_size_mb": 2,
+                "copy_symlinks": False,
+            }
+
+            snapshot(policy, output)
+            manifest_path = output / "manifest.json"
+            outside_manifest = base / "outside-manifest.json"
+            outside_manifest.write_text(manifest_path.read_text(encoding="utf-8"), encoding="utf-8")
+            manifest_path.unlink()
+            manifest_path.symlink_to(outside_manifest)
+
+            checked, verified_bytes, failures = verify(output)
+
+            self.assertEqual(checked, 0)
+            self.assertEqual(verified_bytes, 0)
+            self.assertEqual(failures, ["manifest path escapes snapshot rejected"])
+
+
 if __name__ == "__main__":
     unittest.main()
