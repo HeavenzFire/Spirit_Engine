@@ -180,7 +180,10 @@ def snapshot(policy: dict[str, Any], output: Path) -> Path:
 def verify(snapshot_dir: Path) -> tuple[int, int, list[str]]:
     snapshot_dir = snapshot_dir.expanduser().resolve()
     manifest_path = snapshot_dir / "manifest.json"
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    resolved_manifest = manifest_path.resolve()
+    if snapshot_dir not in resolved_manifest.parents:
+        return 0, 0, ["manifest path escapes snapshot rejected"]
+    manifest = json.loads(resolved_manifest.read_text(encoding="utf-8"))
     if manifest.get("schema_version") != 1 or manifest.get("hash_algorithm") != "sha256":
         raise ValueError("Unsupported manifest schema or hash algorithm.")
     checked = 0
