@@ -1,3 +1,10 @@
+"""Standalone toroid/cloud visualization script.
+
+Optional runtime dependencies: numpy and matplotlib. numpy is retained for
+compatibility with the original experiment; the current calculation uses
+Python's standard library plus matplotlib for plotting.
+"""
+
 import math
 import random
 import numpy as np

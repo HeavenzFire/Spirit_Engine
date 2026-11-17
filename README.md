@@ -19,7 +19,7 @@ A portable, auditable recovery system for HeavenzFire projects and services. It 
 - `services/guardian/server.py`: read-only health/status API, loopback-only by default (`127.0.0.1:8789`).
 - `config/backup-policy.example.json`: sample policy with placeholder paths and secret/cache exclusions.
 - `deploy/compose.yaml`: optional PostgreSQL metadata store and MinIO object store, with ports bound to loopback and credentials required through environment variables.
-- `tests/test_recovery.py`: unit tests for exclusions, snapshot verification, tamper detection, and unsafe manifest paths.
+- `tests/test_recovery.py` and `tests/test_verify_symlink_escape.py`: unit tests for exclusions, snapshot verification, tamper detection, unsafe manifest paths, and file/directory/manifest symlink escapes.
 - `.github/workflows/tests.yml`: CI test workflow.
 
 The local snapshot and cloud-transfer code is committed, but **it has not yet been validated against a real bucket or completed end-to-end restore**. No cloud account, remote bucket, database schema, scheduled job, or production restore flow is claimed to be connected.
@@ -86,7 +86,7 @@ The service rejects non-loopback binds. It is intentionally read-only and does n
 
 ## Next milestones
 
-- [ ] Run CI and fix any test failures.
+- [x] Run CI and fix any test failures (GitHub Actions recovery test workflow passes on the hardening branch).
 - [ ] Test a snapshot and restore drill on a separate volume.
 - [ ] Test upload/download against a versioned S3-compatible bucket.
 - [ ] Add a transactional metadata schema and structured audit log.
